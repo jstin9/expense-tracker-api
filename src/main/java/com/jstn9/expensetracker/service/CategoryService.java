@@ -6,10 +6,7 @@ import com.jstn9.expensetracker.dto.category.CategoryUpdateRequest;
 import com.jstn9.expensetracker.models.Category;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.CategoryRepository;
-import com.jstn9.expensetracker.repository.UserRepository;
-import com.jstn9.expensetracker.util.CategoryMapper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.jstn9.expensetracker.util.mapper.CategoryMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,15 +15,15 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public CategoryService(CategoryRepository categoryRepository, UserRepository userRepository) {
+    public CategoryService(CategoryRepository categoryRepository, UserService userService) {
         this.categoryRepository = categoryRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     public List<CategoryResponse> getAllForCurrentUser(){
-        User user = getCurrentUser();
+        User user = userService.getCurrentUser();
 
         return categoryRepository.findByUser(user).stream()
                 .map(CategoryMapper::toCategoryResponse)
@@ -34,7 +31,7 @@ public class CategoryService {
     }
 
     public CategoryResponse getByIdForCurrentUser(Long id){
-        User user = getCurrentUser();
+        User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Category not found!"));
@@ -43,7 +40,7 @@ public class CategoryService {
     }
 
     public CategoryResponse createCategory(CategoryCreateRequest request){
-        User user = getCurrentUser();
+        User user = userService.getCurrentUser();
 
         if(categoryRepository.existsByNameAndUser(request.getName(), user)){
             throw new RuntimeException("Category already exists!");
@@ -58,7 +55,7 @@ public class CategoryService {
     }
 
     public CategoryResponse updateCategory(Long id, CategoryUpdateRequest request) {
-        User user = getCurrentUser();
+        User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Category not found!"));
@@ -70,7 +67,7 @@ public class CategoryService {
     }
 
     public void deleteCategory(Long id) {
-        User user = getCurrentUser();
+        User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new RuntimeException("Category not found!"));
@@ -78,11 +75,5 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
-    private User getCurrentUser(){
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
 
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
-    }
 }

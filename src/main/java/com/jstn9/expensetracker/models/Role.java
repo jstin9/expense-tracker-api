@@ -1,8 +1,7 @@
 package com.jstn9.expensetracker.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.jstn9.expensetracker.models.enums.RoleNames;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -13,5 +12,6 @@ public class Role {
     @Id
     private Long id;
 
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private RoleNames name;
 }

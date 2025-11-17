@@ -1,4 +1,4 @@
-package com.jstn9.expensetracker.util;
+package com.jstn9.expensetracker.util.mapper;
 
 import com.jstn9.expensetracker.dto.category.CategoryResponse;
 import com.jstn9.expensetracker.models.Category;
