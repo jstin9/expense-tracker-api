@@ -1,10 +1,10 @@
-package com.jstn9.expensetracker.dto;
+package com.jstn9.expensetracker.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class UserLoginRequestDTO {
+public class LoginRequest {
 
     @NotBlank(message = "Username cannot be empty!")
     private String username;

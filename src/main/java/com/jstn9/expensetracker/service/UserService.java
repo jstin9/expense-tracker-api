@@ -1,6 +1,6 @@
 package com.jstn9.expensetracker.service;
 
-import com.jstn9.expensetracker.dto.UserRegistrationRequestDTO;
+import com.jstn9.expensetracker.dto.auth.RegistrationRequest;
 import com.jstn9.expensetracker.exception.UserAlreadyExistsException;
 import com.jstn9.expensetracker.models.Role;
 import com.jstn9.expensetracker.models.User;
@@ -22,7 +22,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User save(UserRegistrationRequestDTO user) {
+    public User save(RegistrationRequest user) {
 
         if(userRepository.existsUserByUsername((user.getUsername()))) {
             throw new UserAlreadyExistsException("User with username " + user.getUsername() + " already exists");

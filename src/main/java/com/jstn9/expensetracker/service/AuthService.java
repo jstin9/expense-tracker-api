@@ -1,6 +1,6 @@
 package com.jstn9.expensetracker.service;
 
-import com.jstn9.expensetracker.dto.UserLoginRequestDTO;
+import com.jstn9.expensetracker.dto.auth.LoginRequest;
 import com.jstn9.expensetracker.models.Role;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.UserRepository;
@@ -22,7 +22,7 @@ public class AuthService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    public String login(UserLoginRequestDTO loginRequestDTO) {
+    public String login(LoginRequest loginRequestDTO) {
         User user = userRepository.findByUsername(loginRequestDTO.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 

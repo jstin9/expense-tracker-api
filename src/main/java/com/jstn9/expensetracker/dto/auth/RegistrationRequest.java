@@ -1,4 +1,4 @@
-package com.jstn9.expensetracker.dto;
+package com.jstn9.expensetracker.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserRegistrationRequestDTO {
+public class RegistrationRequest {
 
     @NotBlank(message = "Username cannot be empty!")
     @Size(min = 3, max = 25)

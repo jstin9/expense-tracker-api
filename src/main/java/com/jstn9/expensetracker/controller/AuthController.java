@@ -1,7 +1,7 @@
 package com.jstn9.expensetracker.controller;
 
-import com.jstn9.expensetracker.dto.UserLoginRequestDTO;
-import com.jstn9.expensetracker.dto.UserRegistrationRequestDTO;
+import com.jstn9.expensetracker.dto.auth.LoginRequest;
+import com.jstn9.expensetracker.dto.auth.RegistrationRequest;
 import com.jstn9.expensetracker.service.AuthService;
 import com.jstn9.expensetracker.service.UserService;
 import jakarta.validation.Valid;
@@ -23,12 +23,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationRequestDTO user) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest user) {
         return ResponseEntity.ok(userService.save(user));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginRequestDTO loginRequest) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         String token = authService.login(loginRequest);
         return ResponseEntity.ok(Map.of(
                 "token", token,
