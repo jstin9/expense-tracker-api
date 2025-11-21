@@ -4,11 +4,10 @@ import lombok.Getter;
 
 @Getter
 public abstract class FieldException extends RuntimeException {
-    private final String field;
+    public abstract String getField();
 
-    public FieldException(String field, String message) {
+    public FieldException(String message) {
         super(message);
-        this.field = field;
     }
 
 }

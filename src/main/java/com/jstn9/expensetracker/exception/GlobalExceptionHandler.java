@@ -1,9 +1,11 @@
 package com.jstn9.expensetracker.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.jstn9.expensetracker.dto.exception.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,9 +20,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Ошибки валидации (DTO @Valid)
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationExceptions(MethodArgumentNotValidException ex) {
 
@@ -32,20 +31,14 @@ public class GlobalExceptionHandler {
             errors.put(field, message);
         });
 
-        ApiError apiError = new ApiError(
-                "Validation failed",
-                HttpStatus.BAD_REQUEST.value(),
-                LocalDateTime.now(),
+        return buildError(
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
                 errors
         );
-
-        return ResponseEntity.badRequest().body(apiError);
     }
 
 
-    /**
-     * Ошибки, у которых есть своё поле (UsernameExists, EmailExists)
-     */
     @ExceptionHandler(FieldException.class)
     public ResponseEntity<ApiError> handleFieldException(FieldException ex) {
 
@@ -53,57 +46,68 @@ public class GlobalExceptionHandler {
                 ex.getField(), ex.getMessage()
         );
 
-        ApiError apiError = new ApiError(
+        return buildError(
                 "Validation failed",
-                HttpStatus.CONFLICT.value(),
-                LocalDateTime.now(),
+                HttpStatus.CONFLICT,
                 errors
         );
-
-        return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
     }
 
-
-    /**
-     * Ошибка "неправильный логин"
-     */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
-        return buildSimpleError(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+        return buildError(
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED,
+                null
+        );
     }
 
 
-    /**
-     * Остальные бизнес-ошибки, без поля
-     */
-    @ExceptionHandler({
-            CategoryNotFoundException.class,
-            CategoryAlreadyExistsException.class,
-    })
-    public ResponseEntity<ApiError> handleBusinessExceptions(RuntimeException ex) {
-        return buildSimpleError(ex.getMessage(), HttpStatus.CONFLICT);
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleJsonParsing(HttpMessageNotReadableException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        Throwable cause = ex.getCause();
+
+        if (cause instanceof InvalidFormatException ife) {
+            String field = ife.getPath().isEmpty()
+                    ? "unknown"
+                    : ife.getPath().get(0).getFieldName();
+
+            errors.put(field, "Invalid value: " + ife.getValue());
+        } else {
+            errors.put("json", "Malformed JSON input");
+        }
+
+        return buildError(
+                "Invalid request",
+                HttpStatus.BAD_REQUEST,
+                errors
+        );
     }
 
-
-    /**
-     * Любая ошибка, которую мы не обработали
-     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAllExceptions(Exception ex) {
         log.error("Unhandled exception", ex);
-        return buildSimpleError("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return buildError(
+                "Internal server error",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null
+        );
     }
 
-
-    /**
-     * Вспомогательный метод для простого ApiError без errors{}
-     */
-    private ResponseEntity<ApiError> buildSimpleError(String message, HttpStatus status) {
+    private ResponseEntity<ApiError> buildError(
+            String message,
+            HttpStatus status,
+            Map<String, String> errors
+    ) {
         ApiError apiError = new ApiError(
                 message,
                 status.value(),
                 LocalDateTime.now(),
-                null
+                errors == null || errors.isEmpty() ? null : errors
         );
 
         return new ResponseEntity<>(apiError, status);
