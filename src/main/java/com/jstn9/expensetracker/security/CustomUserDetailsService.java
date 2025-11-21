@@ -1,6 +1,5 @@
 package com.jstn9.expensetracker.security;
 
-import com.jstn9.expensetracker.models.Role;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,9 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .authorities(user.getRoles().stream()
-                        .map(Role::getName)
-                        .toArray(String[]::new))
+                .authorities(
+                        user.getRoles().stream()
+                                .map(role -> role.getName().name())
+                                .toArray(String[]::new)
+                )
                 .build();
     }
 }

@@ -3,6 +3,8 @@ package com.jstn9.expensetracker.service;
 import com.jstn9.expensetracker.dto.category.CategoryCreateRequest;
 import com.jstn9.expensetracker.dto.category.CategoryResponse;
 import com.jstn9.expensetracker.dto.category.CategoryUpdateRequest;
+import com.jstn9.expensetracker.exception.CategoryAlreadyExistsException;
+import com.jstn9.expensetracker.exception.CategoryNotFoundException;
 import com.jstn9.expensetracker.models.Category;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.CategoryRepository;
@@ -34,7 +36,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Category not found!"));
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
 
         return CategoryMapper.toCategoryResponse(category);
     }
@@ -43,7 +45,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         if(categoryRepository.existsByNameAndUser(request.getName(), user)){
-            throw new RuntimeException("Category already exists!");
+            throw new CategoryAlreadyExistsException("Category already exists!");
         }
 
         Category category = new Category();
@@ -58,7 +60,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Category not found!"));
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
 
         category.setName(request.getName());
         Category savedCategory = categoryRepository.save(category);
@@ -70,7 +72,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Category not found!"));
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
 
         categoryRepository.delete(category);
     }

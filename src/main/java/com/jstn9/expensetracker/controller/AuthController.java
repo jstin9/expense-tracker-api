@@ -1,14 +1,16 @@
 package com.jstn9.expensetracker.controller;
 
 import com.jstn9.expensetracker.dto.auth.LoginRequest;
+import com.jstn9.expensetracker.dto.auth.LoginResponse;
 import com.jstn9.expensetracker.dto.auth.RegistrationRequest;
+import com.jstn9.expensetracker.dto.auth.UserResponse;
+import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.service.AuthService;
 import com.jstn9.expensetracker.service.UserService;
+import com.jstn9.expensetracker.util.mapper.UserMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,17 +25,16 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest user) {
-        return ResponseEntity.ok(userService.save(user));
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody RegistrationRequest user) {
+        User savedUser = userService.save(user);
+        UserResponse response = UserMapper.toUserResponse(savedUser);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         String token = authService.login(loginRequest);
-        return ResponseEntity.ok(Map.of(
-                "token", token,
-                "username", loginRequest.getUsername()
-        ));
+        return ResponseEntity.ok(new LoginResponse(token, loginRequest.getUsername()));
     }
 
 }

@@ -74,8 +74,7 @@ public class TransactionService {
     private void fillTransactionFromRequest(Transaction transaction, TransactionRequest request, User user) {
         Category category = categoryRepository
                 .findByIdAndUser(request.getCategory_id(), user)
-                .orElseThrow(() -> new RuntimeException
-                        ("Category not found by id: " + request.getCategory_id()));
+                .orElseThrow(() -> new RuntimeException("Category not found!"));
 
         transaction.setUser(user);
         transaction.setCategory(category);

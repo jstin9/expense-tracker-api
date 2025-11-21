@@ -1,7 +1,6 @@
 package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.auth.LoginRequest;
-import com.jstn9.expensetracker.models.Role;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.UserRepository;
 import com.jstn9.expensetracker.security.JwtTokenProvider;
@@ -34,9 +33,11 @@ public class AuthService {
                 org.springframework.security.core.userdetails.User
                         .withUsername(user.getUsername())
                         .password(user.getPassword())
-                        .authorities(user.getRoles().stream()
-                                .map(Role::getName)
-                                .toArray(String[]::new))
+                        .authorities(
+                                user.getRoles().stream()
+                                        .map(r -> r.getName().name())
+                                        .toArray(String[]::new)
+                        )
                         .build()
         );
     }
