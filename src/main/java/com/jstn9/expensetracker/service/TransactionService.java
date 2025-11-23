@@ -2,7 +2,9 @@ package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.transaction.TransactionRequest;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
+import com.jstn9.expensetracker.exception.BalanceException;
 import com.jstn9.expensetracker.exception.CategoryNotFoundException;
+import com.jstn9.expensetracker.exception.TransactionNotFoundException;
 import com.jstn9.expensetracker.models.Category;
 import com.jstn9.expensetracker.models.Profile;
 import com.jstn9.expensetracker.models.Transaction;
@@ -12,10 +14,12 @@ import com.jstn9.expensetracker.repository.CategoryRepository;
 import com.jstn9.expensetracker.repository.ProfileRepository;
 import com.jstn9.expensetracker.repository.TransactionRepository;
 import com.jstn9.expensetracker.util.mapper.TransactionMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,69 +43,77 @@ public class TransactionService {
 
     public List<TransactionResponse> getTransactions() {
         User user = userService.getCurrentUser();
-        return transactionRepository.getAllByUser(user)
+        return transactionRepository.getAllByUserOrderByIdDesc(user)
                 .stream()
                 .map(TransactionMapper::toTransactionResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public TransactionResponse getTransactionById(Long id) {
         User user = userService.getCurrentUser();
         return transactionRepository.findByUserAndId(user, id)
                 .map(TransactionMapper::toTransactionResponse)
-                .orElseThrow(() -> new RuntimeException("Transaction not found by id: " + id));
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id: " + id));
     }
 
+    @Transactional
     public TransactionResponse createTransaction(TransactionRequest request) {
+        Profile profile = getCurrentUserProfile();
+
+        Transaction transaction = new Transaction();
+
+        fillTransactionFromRequest(transaction,request);
+        applyNewBalance(profile,transaction);
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        return TransactionMapper.toTransactionResponse(savedTransaction);
+    }
+
+    @Transactional
+    public TransactionResponse updateTransaction(Long id, TransactionRequest request) {
         User user = userService.getCurrentUser();
 
-        Profile profile = profileRepository.findByUser(user)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Transaction oldTransaction = transactionRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id: " + id));
 
-        BigDecimal amount = request.getAmount();
+        Profile profile = getCurrentUserProfile();
 
-        if(request.getType() == TransactionType.INCOME){
-            profile.setBalance(profile.getBalance().add(amount));
-        } else if(request.getType() == TransactionType.EXPENSE){
-            if(profile.getBalance().compareTo(amount) <= 0){
-                throw new RuntimeException("Balance can't be negative!");
-            }
-            profile.setBalance(profile.getBalance().subtract(amount));
+        rollbackOldTransactionEffect(profile, oldTransaction);
+
+        fillTransactionFromRequest(oldTransaction,request);
+
+        applyNewBalance(profile, oldTransaction);
+
+        profileRepository.save(profile);
+
+        Transaction savedTransaction = transactionRepository.save(oldTransaction);
+        return TransactionMapper.toTransactionResponse(savedTransaction);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        User user = userService.getCurrentUser();
+
+        Transaction oldTransaction = transactionRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id:" + id));
+
+        Profile profile = getCurrentUserProfile();
+
+        rollbackOldTransactionEffect(profile, oldTransaction);
+
+        if(profile.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BalanceException("Balance cannot be negative after deletion!");
         }
 
         profileRepository.save(profile);
 
-        Transaction transaction = new Transaction();
-
-        fillTransactionFromRequest(transaction,request,user);
-
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        return TransactionMapper.toTransactionResponse(savedTransaction);
-    }
-
-    public TransactionResponse updateTransaction(Long id, TransactionRequest request) {
-        User user = userService.getCurrentUser();
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found by id: " + id));
-
-        fillTransactionFromRequest(transaction,request,user);
-
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        return TransactionMapper.toTransactionResponse(savedTransaction);
-    }
-
-    public void deleteById(Long id) {
-        User user = userService.getCurrentUser();
-
-        Transaction transaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Transaction not found by id:" + id));
-
-        transactionRepository.delete(transaction);
+        transactionRepository.delete(oldTransaction);
     }
 
     private void fillTransactionFromRequest(Transaction transaction,
-                                            TransactionRequest request,
-                                            User user) {
+                                            TransactionRequest request) {
+        User user = userService.getCurrentUser();
+
         Category category = categoryRepository
                 .findByIdAndUser(request.getCategory_id(), user)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
@@ -112,5 +124,35 @@ public class TransactionService {
         transaction.setType(request.getType());
         transaction.setDescription(request.getDescription());
         transaction.setDate(request.getDate());
+    }
+
+    private void rollbackOldTransactionEffect(Profile profile, Transaction oldTransaction) {
+        BigDecimal amount = oldTransaction.getAmount();
+
+        if(oldTransaction.getType() == TransactionType.INCOME){
+            profile.setBalance(profile.getBalance().subtract(amount));
+        } else {
+            profile.setBalance(profile.getBalance().add(amount));
+        }
+    }
+
+    private void applyNewBalance(Profile profile, Transaction transaction) {
+        BigDecimal amount = transaction.getAmount();
+
+        if(transaction.getType() == TransactionType.INCOME){
+            profile.setBalance(profile.getBalance().add(amount));
+        } else {
+            profile.setBalance(profile.getBalance().subtract(amount));
+        }
+
+        if(profile.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BalanceException("Balance can't be negative!");
+        }
+    }
+
+    private Profile getCurrentUserProfile() {
+        User user = userService.getCurrentUser();
+        return profileRepository.findByUser(user)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }
