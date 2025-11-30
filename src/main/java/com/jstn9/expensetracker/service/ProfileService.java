@@ -2,10 +2,11 @@ package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.profile.ProfileRequest;
 import com.jstn9.expensetracker.dto.profile.ProfileResponse;
+import com.jstn9.expensetracker.exception.ProfileNotFilledException;
 import com.jstn9.expensetracker.models.Profile;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.ProfileRepository;
-import com.jstn9.expensetracker.util.mapper.ProfileMapper;
+import com.jstn9.expensetracker.util.MapperUtil;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ public class ProfileService {
 
     public ProfileResponse getProfile() {
         Profile profile = getCurrentUserProfile();
-        return ProfileMapper.toProfileResponse(profile);
+        return MapperUtil.toProfileResponse(profile);
     }
 
 
@@ -36,7 +37,16 @@ public class ProfileService {
         profile.setCurrencyType(request.getCurrencyType());
         Profile savedProfile = profileRepository.save(profile);
 
-        return ProfileMapper.toProfileResponse(savedProfile);
+        return MapperUtil.toProfileResponse(savedProfile);
+    }
+
+    public boolean isProfileFilled(){
+        User user = userService.getCurrentUser();
+        boolean neverUpdated = profileRepository.isProfileNeverUpdated(user.getId());
+        if(neverUpdated){
+            throw new ProfileNotFilledException("You have not filled your profile!");
+        }
+        return true;
     }
 
     private Profile getCurrentUserProfile(){

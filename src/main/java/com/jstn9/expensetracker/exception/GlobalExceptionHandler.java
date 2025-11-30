@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -32,12 +33,34 @@ public class GlobalExceptionHandler {
         });
 
         return buildError(
+                "Validation failed",
+                HttpStatus.BAD_REQUEST,
+                errors
+        );
+    }
+
+    @ExceptionHandler(ProfileNotFilledException.class)
+    public ResponseEntity<ApiError> handleProfileNotFilledException(ProfileNotFilledException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("profile", "ProfileNotFilled");
+
+        return buildError(
                 ex.getMessage(),
                 HttpStatus.BAD_REQUEST,
                 errors
         );
     }
 
+    @ExceptionHandler(CategoryIsUsedInTransactionException.class)
+    public ResponseEntity<ApiError> handleCategoryIsUsedInTransactionException(CategoryIsUsedInTransactionException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("category", "CategoryIsUsedInTransaction");
+        return buildError(
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                errors
+        );
+    }
 
     @ExceptionHandler(FieldException.class)
     public ResponseEntity<ApiError> handleFieldException(FieldException ex) {
@@ -95,6 +118,18 @@ public class GlobalExceptionHandler {
                 "Internal server error",
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 null
+        );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex) {
+
+        String path = ex.getResourcePath();
+
+        return buildError(
+                "Resource not found",
+                HttpStatus.NOT_FOUND,
+                Map.of("path", path)
         );
     }
 

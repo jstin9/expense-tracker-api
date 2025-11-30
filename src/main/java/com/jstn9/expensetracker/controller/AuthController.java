@@ -7,7 +7,7 @@ import com.jstn9.expensetracker.dto.auth.UserResponse;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.service.AuthService;
 import com.jstn9.expensetracker.service.UserService;
-import com.jstn9.expensetracker.util.mapper.UserMapper;
+import com.jstn9.expensetracker.util.MapperUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody RegistrationRequest user) {
         User savedUser = userService.save(user);
-        UserResponse response = UserMapper.toUserResponse(savedUser);
+        UserResponse response = MapperUtil.toUserResponse(savedUser);
         return ResponseEntity.ok(response);
     }
 

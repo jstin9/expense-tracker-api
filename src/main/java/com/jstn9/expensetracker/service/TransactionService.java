@@ -1,5 +1,6 @@
 package com.jstn9.expensetracker.service;
 
+import com.jstn9.expensetracker.dto.transaction.TransactionFilter;
 import com.jstn9.expensetracker.dto.transaction.TransactionRequest;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
 import com.jstn9.expensetracker.exception.BalanceException;
@@ -13,15 +14,15 @@ import com.jstn9.expensetracker.models.enums.TransactionType;
 import com.jstn9.expensetracker.repository.CategoryRepository;
 import com.jstn9.expensetracker.repository.ProfileRepository;
 import com.jstn9.expensetracker.repository.TransactionRepository;
-import com.jstn9.expensetracker.util.mapper.TransactionMapper;
+import com.jstn9.expensetracker.specification.TransactionSpecification;
+import com.jstn9.expensetracker.util.MapperUtil;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -41,18 +42,19 @@ public class TransactionService {
         this.userService = userService;
     }
 
-    public List<TransactionResponse> getTransactions() {
+    public Page<TransactionResponse> getFiltered(TransactionFilter filter, Pageable pageable){
         User user = userService.getCurrentUser();
-        return transactionRepository.getAllByUserOrderByIdDesc(user)
-                .stream()
-                .map(TransactionMapper::toTransactionResponse)
-                .toList();
+
+        return transactionRepository.findAll(
+                TransactionSpecification.filter(filter, user),
+                pageable).map(MapperUtil::toTransactionResponse);
+
     }
 
     public TransactionResponse getTransactionById(Long id) {
         User user = userService.getCurrentUser();
-        return transactionRepository.findByUserAndId(user, id)
-                .map(TransactionMapper::toTransactionResponse)
+        return transactionRepository.findByIdAndUser(id, user)
+                .map(MapperUtil::toTransactionResponse)
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id: " + id));
     }
 
@@ -66,7 +68,7 @@ public class TransactionService {
         applyNewBalance(profile,transaction);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
-        return TransactionMapper.toTransactionResponse(savedTransaction);
+        return MapperUtil.toTransactionResponse(savedTransaction);
     }
 
     @Transactional
@@ -78,16 +80,25 @@ public class TransactionService {
 
         Profile profile = getCurrentUserProfile();
 
-        rollbackOldTransactionEffect(profile, oldTransaction);
+        boolean amountChanged = oldTransaction.getAmount().compareTo(request.getAmount()) != 0;
+        boolean typeChanged = oldTransaction.getType() != request.getType();
 
+        //update balance only if amount or type changed
+        if(amountChanged || typeChanged) {
+            rollbackOldTransactionEffect(profile, oldTransaction);
+        }
+
+        //update transaction
         fillTransactionFromRequest(oldTransaction,request);
 
-        applyNewBalance(profile, oldTransaction);
-
-        profileRepository.save(profile);
+        //save balance only if amount or type changed
+        if(amountChanged || typeChanged) {
+            applyNewBalance(profile, oldTransaction);
+            profileRepository.save(profile);
+        }
 
         Transaction savedTransaction = transactionRepository.save(oldTransaction);
-        return TransactionMapper.toTransactionResponse(savedTransaction);
+        return MapperUtil.toTransactionResponse(savedTransaction);
     }
 
     @Transactional
