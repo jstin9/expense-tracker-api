@@ -1,7 +1,9 @@
 package com.jstn9.expensetracker.controller;
 
+import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
 import com.jstn9.expensetracker.dto.statistics.TypeStats;
-import com.jstn9.expensetracker.models.enums.TransactionType;
+import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
 import com.jstn9.expensetracker.service.StatisticsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +25,31 @@ public class StatisticsController {
 
     @GetMapping("/income-expense")
     public List<TypeStats> getIncomeExpenseStats(
-            @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to
     ){
-        return statisticsService.getIncomeExpenseStats(type, from, to);
+        return statisticsService.getIncomeExpenseStats(from, to);
     }
 
+    @GetMapping("/categories")
+    public List<CategoryStats> getCategoriesStats(
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to
+    ){
+        return statisticsService.getCategoriesStats(from,to);
+    }
+
+    @GetMapping("/monthly")
+    public List<MonthlyStats> getMonthlyStats(
+            @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now().getYear()}") int year
+    ){
+        return statisticsService.getMonthlyStats(year);
+    }
+
+    @GetMapping("/last-transactions")
+    public List<TransactionResponse> getLastTransactions(
+            @RequestParam(required = false, defaultValue = "5") int limit
+    ){
+        return statisticsService.getLastTransactions(limit);
+    }
 }

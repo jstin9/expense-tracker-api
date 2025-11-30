@@ -1,9 +1,13 @@
 package com.jstn9.expensetracker.service;
 
+import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
 import com.jstn9.expensetracker.dto.statistics.TypeStats;
+import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
 import com.jstn9.expensetracker.models.User;
-import com.jstn9.expensetracker.models.enums.TransactionType;
 import com.jstn9.expensetracker.repository.TransactionRepository;
+import com.jstn9.expensetracker.util.MapperUtil;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,8 +24,30 @@ public class StatisticsService {
         this.userService = userService;
     }
 
-    public List<TypeStats> getIncomeExpenseStats(TransactionType type, LocalDate from, LocalDate to) {
+    public List<TypeStats> getIncomeExpenseStats(LocalDate from, LocalDate to) {
         User user = userService.getCurrentUser();
-        return transactionRepository.getIncomeExpenseStats(user, type, from, to);
+        return transactionRepository.getIncomeExpenseStats(user, from, to);
+    }
+
+    public List<CategoryStats> getCategoriesStats(LocalDate from, LocalDate to) {
+        User user = userService.getCurrentUser();
+        return transactionRepository.getCategoriesStats(user, from, to);
+    }
+
+    public List<MonthlyStats> getMonthlyStats(int year) {
+        User user = userService.getCurrentUser();
+        return transactionRepository.getMonthlyStats(user, year);
+    }
+
+    public List<TransactionResponse> getLastTransactions(int count) {
+        User user = userService.getCurrentUser();
+
+        Pageable pageable = Pageable.ofSize(count);
+
+        return transactionRepository
+                .findByUserOrderByDateDesc(user, pageable)
+                .stream()
+                .map(MapperUtil::toTransactionResponse)
+                .toList();
     }
 }
