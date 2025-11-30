@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import MenuBox from "../shared/components/MenuBox";
+import MenuBox from "../../shared/components/MenuBox";
 import {
 	faArrowDown,
 	faArrowLeft,
@@ -9,24 +9,29 @@ import {
 	faPlus,
 	faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import Loader from "../shared/components/Loader";
+import Loader from "../../shared/components/Loader";
 import { useMemo, useState } from "react";
-import Modal from "../shared/components/Modal";
+import Modal from "../../shared/components/Modal";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import http from "../shared/api/services/http";
+import http from "../../shared/api/services/http";
 import type { AxiosError } from "axios";
-import type { Transaction, TransactionPageResponse } from "../entities/transactionTypes";
+import type { Transaction, TransactionPageResponse } from "../../entities/transactionTypes";
+import FilterPanel from "./FilterPanel";
+import useFilters from "./useFilters";
 
 const Transactions = () => {
+	const { queryParams, ...filters } = useFilters();
 	const [currentPage, setCurrentPage] = useState<number>(0);
 
 	const { data, isLoading, isError, refetch } = useQuery<TransactionPageResponse<Transaction>>({
-		queryKey: ["transactions", currentPage],
+		queryKey: ["transactions", currentPage, queryParams],
 		queryFn: async () => {
-			const response = await http.get("/transactions", { params: { page: currentPage } });
+			const response = await http.get("/transactions", {
+				params: { page: currentPage, ...queryParams },
+			});
 			return response.data;
 		},
 	});
@@ -70,6 +75,8 @@ const Transactions = () => {
 				</button>
 				{form}
 
+				<FilterPanel filters={filters} />
+
 				<table className="w-full text-left text-gray-300">
 					<thead className="bg-neutral-800/60 text-gray-200">
 						<tr>
@@ -77,7 +84,8 @@ const Transactions = () => {
 							<th className="px-4 py-3">Type</th>
 							<th className="px-4 py-3">Category</th>
 							<th className="px-4 py-3">Amount</th>
-							<th className="px-4 py-3 w-120">Description</th>
+							<th className="px-4 py-3 w-100">Description</th>
+							<th className="px-4 py-3">Date</th>
 
 							<th className="px-4 py-3 w-40 text-center">Actions</th>
 						</tr>
@@ -86,7 +94,7 @@ const Transactions = () => {
 					<tbody>
 						{isLoading && (
 							<tr>
-								<td colSpan={3} className="px-4 py-3">
+								<td colSpan={6} className="px-4 py-3">
 									<Loader />
 								</td>
 							</tr>
@@ -94,7 +102,7 @@ const Transactions = () => {
 
 						{isError && (
 							<tr>
-								<td colSpan={3} className="px-4 py-3">
+								<td colSpan={6} className="px-4 py-3">
 									<p className="text-rose-400">Error loading transaction.</p>
 								</td>
 							</tr>
@@ -131,6 +139,9 @@ const Transactions = () => {
 										{item.description.length > 50
 											? item.description.slice(0, 50) + "..."
 											: item.description}
+									</td>
+									<td className="px-4 py-3">
+										{new Date(item.date).toLocaleDateString("RU-ru")}{" "}
 									</td>
 
 									<td className="px-4 py-3 flex items-center justify-center gap-3">
@@ -447,35 +458,32 @@ const useModalForm = ({ parentOnSubmit }: FormProps) => {
 
 					<div>
 						<label className="block text-sm text-gray-300 mb-1">Category</label>
+
+						{categories.isError && (
+							<p className="mt-1 text-xs text-rose-400">
+								Categories loading failed. Please try again.
+							</p>
+						)}
+						{categories.isPending && <Loader />}
+
 						<select
 							{...register("category_id")}
-							disabled={isPending || isDelete}
+							disabled={isPending || isDelete || categories.isPending}
 							className="w-full bg-gray-800 border border-neutral-700 rounded-md px-3 py-2 text-gray-400 focus:ring-indigo-500 focus:ring-2">
 							<option className="bg-gray-800" value="">
 								Choose category
 							</option>
 
-							<hr />
-
-							{categories.isError ? (
-								<p className="mt-1 text-xs text-rose-400">
-									Cagories getting is failed. Please try again.
-								</p>
-							) : categories.isPending ? (
-								<Loader />
-							) : (
-								categories.data.map(
-									(category: { id: number; name: string }, key: number) => (
-										<option
-											key={key}
-											className="bg-gray-800"
-											value={category.id}>
-											{category.name}
-										</option>
-									),
-								)
-							)}
+							{categories.data?.map((category: { id: number; name: string }) => (
+								<option
+									key={category.id}
+									className="bg-gray-800"
+									value={category.id}>
+									{category.name}
+								</option>
+							))}
 						</select>
+
 						{errors.category_id && (
 							<p className="mt-1 text-xs text-rose-400">
 								{errors.category_id.message}

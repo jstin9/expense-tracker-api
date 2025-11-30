@@ -8,7 +8,7 @@ import SignIn from "./pages/SignIn";
 import Home from "./pages/Home";
 import Categories from "./pages/Categories";
 import Settings from "./pages/Settings";
-import Transactions from "./pages/Transactions";
+import Transactions from "./pages/transactions/Page";
 
 function App() {
 	const queryClient = new QueryClient();
