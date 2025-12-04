@@ -1,12 +1,9 @@
 package com.jstn9.expensetracker.exception;
 
-public class EmailAlreadyExistsException extends FieldException {
-    public EmailAlreadyExistsException(String message) {
-        super(message);
-    }
+import org.springframework.http.HttpStatus;
 
-    @Override
-    public String getField() {
-        return "email";
+public class EmailAlreadyExistsException extends ApiException {
+    public EmailAlreadyExistsException() {
+        super(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.CONFLICT, "email");
     }
 }

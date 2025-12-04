@@ -1,9 +1,6 @@
 package com.jstn9.expensetracker.controller;
 
-import com.jstn9.expensetracker.dto.auth.LoginRequest;
-import com.jstn9.expensetracker.dto.auth.LoginResponse;
-import com.jstn9.expensetracker.dto.auth.RegistrationRequest;
-import com.jstn9.expensetracker.dto.auth.UserResponse;
+import com.jstn9.expensetracker.dto.auth.*;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.service.AuthService;
 import com.jstn9.expensetracker.service.UserService;
@@ -33,8 +30,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
-        String token = authService.login(loginRequest);
-        return ResponseEntity.ok(new LoginResponse(token, loginRequest.getUsername()));
+        LoginResponse response = authService.login(loginRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshRequest refreshRequest) {
+        LoginResponse response = authService.refreshToken(refreshRequest.getRefreshToken());
+        return ResponseEntity.ok(response);
     }
 
 }

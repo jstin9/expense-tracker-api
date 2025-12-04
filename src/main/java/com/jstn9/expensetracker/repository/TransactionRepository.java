@@ -2,7 +2,6 @@
 
     import com.jstn9.expensetracker.dto.statistics.CategoryStats;
     import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
-    import com.jstn9.expensetracker.dto.statistics.TypeStats;
     import com.jstn9.expensetracker.models.Category;
     import com.jstn9.expensetracker.models.Transaction;
     import com.jstn9.expensetracker.models.User;
@@ -12,6 +11,7 @@
     import org.springframework.data.jpa.repository.Query;
     import org.springframework.data.repository.query.Param;
 
+    import java.math.BigDecimal;
     import java.time.LocalDate;
     import java.util.List;
     import java.util.Optional;
@@ -23,17 +23,28 @@
         boolean existsByCategory(Category category);
 
         @Query("""
-            SELECT new com.jstn9.expensetracker.dto.statistics.TypeStats(
-                t.type,
-                SUM(t.amount)
-            )
+            SELECT COALESCE(SUM(t.amount), 0)
             FROM Transaction t
             WHERE t.user = :user
-              AND t.date >= COALESCE(:fromDate, t.date)
-              AND t.date <= COALESCE(:toDate, t.date)
-            GROUP BY t.type
+              AND t.type = 'INCOME'
+              AND (CAST(:fromDate AS date) IS NULL OR t.date >= :fromDate)
+              AND (CAST(:toDate  AS date) IS NULL OR t.date <= :toDate)
         """)
-        List<TypeStats> getIncomeExpenseStats(
+        BigDecimal getIncome(
+                @Param("user") User user,
+                @Param("fromDate") LocalDate fromDate,
+                @Param("toDate") LocalDate toDate
+        );
+
+        @Query("""
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.type = 'EXPENSE'
+              AND (CAST(:fromDate AS date) IS NULL OR t.date >= :fromDate)
+              AND (CAST(:toDate  AS date) IS NULL OR t.date <= :toDate)
+        """)
+        BigDecimal getExpense(
                 @Param("user") User user,
                 @Param("fromDate") LocalDate fromDate,
                 @Param("toDate") LocalDate toDate

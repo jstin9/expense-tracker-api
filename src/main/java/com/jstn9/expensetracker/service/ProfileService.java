@@ -44,7 +44,7 @@ public class ProfileService {
         User user = userService.getCurrentUser();
         boolean neverUpdated = profileRepository.isProfileNeverUpdated(user.getId());
         if(neverUpdated){
-            throw new ProfileNotFilledException("You have not filled your profile!");
+            throw new ProfileNotFilledException();
         }
         return true;
     }

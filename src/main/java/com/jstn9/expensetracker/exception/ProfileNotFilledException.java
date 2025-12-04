@@ -1,7 +1,9 @@
 package com.jstn9.expensetracker.exception;
 
-public class ProfileNotFilledException extends RuntimeException {
-    public ProfileNotFilledException(String message) {
-        super(message);
+import org.springframework.http.HttpStatus;
+
+public class ProfileNotFilledException extends ApiException {
+    public ProfileNotFilledException() {
+        super(ErrorCode.PROFILE_NOT_FILLED, HttpStatus.BAD_REQUEST, "profile");
     }
 }

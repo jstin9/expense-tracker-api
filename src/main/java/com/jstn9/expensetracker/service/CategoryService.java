@@ -40,7 +40,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         return MapperUtil.toCategoryResponse(category);
     }
@@ -49,7 +49,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         if(categoryRepository.existsByNameAndUser(request.getName(), user)){
-            throw new CategoryAlreadyExistsException("Category already exists!");
+            throw new CategoryAlreadyExistsException();
         }
 
         Category category = new Category();
@@ -64,7 +64,7 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         category.setName(request.getName());
         Category savedCategory = categoryRepository.save(category);
@@ -76,11 +76,11 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         boolean isUsed = transactionRepository.existsByCategory(category);
         if(isUsed){
-            throw new CategoryIsUsedInTransactionException("Category is used in transactions and cannot be deleted!");
+            throw new CategoryIsUsedInTransactionException();
         }
 
         categoryRepository.delete(category);

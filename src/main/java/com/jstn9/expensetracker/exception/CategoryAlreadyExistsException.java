@@ -1,12 +1,9 @@
 package com.jstn9.expensetracker.exception;
 
-public class CategoryAlreadyExistsException extends FieldException {
-    public CategoryAlreadyExistsException(String message) {
-        super(message);
-    }
+import org.springframework.http.HttpStatus;
 
-    @Override
-    public String getField() {
-        return "name";
+public class CategoryAlreadyExistsException extends ApiException {
+    public CategoryAlreadyExistsException() {
+        super(ErrorCode.CATEGORY_ALREADY_EXISTS, HttpStatus.CONFLICT, "name");
     }
 }

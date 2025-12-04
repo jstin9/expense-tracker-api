@@ -3,9 +3,10 @@ package com.jstn9.expensetracker.service;
 import com.jstn9.expensetracker.dto.transaction.TransactionFilter;
 import com.jstn9.expensetracker.dto.transaction.TransactionRequest;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
-import com.jstn9.expensetracker.exception.BalanceException;
+import com.jstn9.expensetracker.exception.BalanceNegativeException;
 import com.jstn9.expensetracker.exception.CategoryNotFoundException;
 import com.jstn9.expensetracker.exception.TransactionNotFoundException;
+import com.jstn9.expensetracker.exception.UsernameNotFoundException;
 import com.jstn9.expensetracker.models.Category;
 import com.jstn9.expensetracker.models.Profile;
 import com.jstn9.expensetracker.models.Transaction;
@@ -19,7 +20,6 @@ import com.jstn9.expensetracker.util.MapperUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -55,7 +55,7 @@ public class TransactionService {
         User user = userService.getCurrentUser();
         return transactionRepository.findByIdAndUser(id, user)
                 .map(MapperUtil::toTransactionResponse)
-                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id: " + id));
+                .orElseThrow(TransactionNotFoundException::new);
     }
 
     @Transactional
@@ -76,7 +76,7 @@ public class TransactionService {
         User user = userService.getCurrentUser();
 
         Transaction oldTransaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id: " + id));
+                .orElseThrow(TransactionNotFoundException::new);
 
         Profile profile = getCurrentUserProfile();
 
@@ -106,14 +106,14 @@ public class TransactionService {
         User user = userService.getCurrentUser();
 
         Transaction oldTransaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found by id:" + id));
+                .orElseThrow(TransactionNotFoundException::new);
 
         Profile profile = getCurrentUserProfile();
 
         rollbackOldTransactionEffect(profile, oldTransaction);
 
         if(profile.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BalanceException("Balance cannot be negative after deletion!");
+            throw new BalanceNegativeException();
         }
 
         profileRepository.save(profile);
@@ -127,7 +127,7 @@ public class TransactionService {
 
         Category category = categoryRepository
                 .findByIdAndUser(request.getCategory_id(), user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         transaction.setUser(user);
         transaction.setCategory(category);
@@ -157,13 +157,13 @@ public class TransactionService {
         }
 
         if(profile.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BalanceException("Balance can't be negative!");
+            throw new BalanceNegativeException();
         }
     }
 
     private Profile getCurrentUserProfile() {
         User user = userService.getCurrentUser();
         return profileRepository.findByUser(user)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(UsernameNotFoundException::new);
     }
 }

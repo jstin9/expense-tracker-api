@@ -1,12 +1,10 @@
 package com.jstn9.expensetracker.exception;
 
-public class UsernameAlreadyExistsException extends FieldException {
-    public UsernameAlreadyExistsException(String message) {
-        super(message);
+import org.springframework.http.HttpStatus;
+
+public class UsernameAlreadyExistsException extends ApiException {
+    public UsernameAlreadyExistsException() {
+        super(ErrorCode.USERNAME_ALREADY_EXISTS, HttpStatus.CONFLICT, "username");
     }
 
-    @Override
-    public String getField() {
-        return "username";
-    }
 }

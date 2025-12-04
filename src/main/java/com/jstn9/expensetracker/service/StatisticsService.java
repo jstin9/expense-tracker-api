@@ -1,8 +1,8 @@
 package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+import com.jstn9.expensetracker.dto.statistics.IncomeExpense;
 import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
-import com.jstn9.expensetracker.dto.statistics.TypeStats;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.TransactionRepository;
@@ -10,6 +10,7 @@ import com.jstn9.expensetracker.util.MapperUtil;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,9 +25,12 @@ public class StatisticsService {
         this.userService = userService;
     }
 
-    public List<TypeStats> getIncomeExpenseStats(LocalDate from, LocalDate to) {
+    public IncomeExpense getIncomeExpenseStats(LocalDate from, LocalDate to) {
         User user = userService.getCurrentUser();
-        return transactionRepository.getIncomeExpenseStats(user, from, to);
+
+        BigDecimal income = transactionRepository.getIncome(user, from, to);
+        BigDecimal expense = transactionRepository.getExpense(user, from, to);
+        return new IncomeExpense(income,expense);
     }
 
     public List<CategoryStats> getCategoriesStats(LocalDate from, LocalDate to) {

@@ -1,8 +1,8 @@
 package com.jstn9.expensetracker.controller;
 
 import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+import com.jstn9.expensetracker.dto.statistics.IncomeExpense;
 import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
-import com.jstn9.expensetracker.dto.statistics.TypeStats;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
 import com.jstn9.expensetracker.service.StatisticsService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +24,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/income-expense")
-    public List<TypeStats> getIncomeExpenseStats(
+    public IncomeExpense getIncomeExpenseStats(
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to
     ){

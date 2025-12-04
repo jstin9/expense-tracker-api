@@ -38,11 +38,11 @@ public class UserService {
     public User save(RegistrationRequest user) {
 
         if (userRepository.existsUserByUsername(user.getUsername())) {
-            throw new UsernameAlreadyExistsException(user.getUsername());
+            throw new UsernameAlreadyExistsException();
         }
 
         if (userRepository.existsUserByEmail(user.getEmail())) {
-            throw new EmailAlreadyExistsException(user.getEmail());
+            throw new EmailAlreadyExistsException();
         }
 
         User newUser = new User();
