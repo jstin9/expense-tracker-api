@@ -1,6 +1,7 @@
 package com.jstn9.expensetracker.controller;
 
 import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+import com.jstn9.expensetracker.dto.statistics.DailyStats;
 import com.jstn9.expensetracker.dto.statistics.IncomeExpense;
 import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
@@ -44,6 +45,14 @@ public class StatisticsController {
             @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now().getYear()}") int year
     ){
         return statisticsService.getMonthlyStats(year);
+    }
+
+    @GetMapping("/daily")
+    public List<DailyStats> getDailyStats(
+            @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now().getMonthValue()}") int month,
+            @RequestParam(required = false, defaultValue = "#{T(java.time.LocalDate).now().getYear()}") int year
+    ){
+        return statisticsService.getDailyStats(month, year);
     }
 
     @GetMapping("/last-transactions")

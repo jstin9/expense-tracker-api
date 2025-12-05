@@ -1,6 +1,7 @@
 package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+import com.jstn9.expensetracker.dto.statistics.DailyStats;
 import com.jstn9.expensetracker.dto.statistics.IncomeExpense;
 import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
@@ -41,6 +42,11 @@ public class StatisticsService {
     public List<MonthlyStats> getMonthlyStats(int year) {
         User user = userService.getCurrentUser();
         return transactionRepository.getMonthlyStats(user, year);
+    }
+
+    public List<DailyStats> getDailyStats(int month, int year) {
+        User user = userService.getCurrentUser();
+        return transactionRepository.getDailyStats(user, month, year);
     }
 
     public List<TransactionResponse> getLastTransactions(int count) {

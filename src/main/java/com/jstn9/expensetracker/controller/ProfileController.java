@@ -5,6 +5,8 @@ import com.jstn9.expensetracker.dto.profile.ProfileResponse;
 import com.jstn9.expensetracker.service.ProfileService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -31,8 +33,14 @@ public class ProfileController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<Map<String, Boolean>> checkProfile(){
-        boolean isFilled = profileService.isProfileFilled();
+    public ResponseEntity<Map<String, Boolean>> checkProfile(Authentication authentication){
+
+        boolean isFilled = false;
+
+        if(authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)){
+            isFilled = profileService.isProfileFilled();
+        }
+
         return ResponseEntity.ok(Map.of("isFilled", isFilled));
 
     }

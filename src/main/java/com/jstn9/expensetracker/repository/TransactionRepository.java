@@ -1,6 +1,7 @@
     package com.jstn9.expensetracker.repository;
 
     import com.jstn9.expensetracker.dto.statistics.CategoryStats;
+    import com.jstn9.expensetracker.dto.statistics.DailyStats;
     import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
     import com.jstn9.expensetracker.models.Category;
     import com.jstn9.expensetracker.models.Transaction;
@@ -82,6 +83,24 @@
         """)
         List<MonthlyStats> getMonthlyStats(
                 @Param("user") User user,
+                @Param("year") int year);
+
+        @Query("""
+        SELECT new com.jstn9.expensetracker.dto.statistics.DailyStats(
+            DAY(t.date),
+            SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END),
+            SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END)
+        )
+        FROM Transaction t
+        WHERE t.user = :user
+          AND MONTH(t.date) = :month
+          AND YEAR(t.date) = :year
+        GROUP BY DAY(t.date)
+        ORDER BY DAY(t.date)
+        """)
+        List<DailyStats> getDailyStats(
+                @Param("user") User user,
+                @Param("month") int month,
                 @Param("year") int year);
 
         List<Transaction> findByUserOrderByDateDesc(User user, Pageable pageable);

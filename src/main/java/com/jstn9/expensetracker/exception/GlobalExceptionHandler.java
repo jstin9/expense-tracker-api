@@ -2,6 +2,7 @@ package com.jstn9.expensetracker.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.jstn9.expensetracker.dto.exception.ApiError;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,12 +92,45 @@ public class GlobalExceptionHandler {
         );
     }
 
+//    @ExceptionHandler(NoResourceFoundException.class)
+//    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex) {
+//
+//        String path = ex.getResourcePath();
+//
+//        Map<String, String> errors = Map.of("path", path);
+//
+//        return buildError(
+//                ErrorCode.RESOURCE_NOT_FOUND.name(),
+//                HttpStatus.NOT_FOUND,
+//                errors
+//        );
+//    }
+
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiError> handleAllExceptions(Exception ex) {
+//        log.error("Unhandled exception", ex);
+//
+//        return buildError(
+//                ErrorCode.INTERNAL_SERVER_ERROR.name(),
+//                HttpStatus.INTERNAL_SERVER_ERROR,
+//                null
+//        );
+//    }
+
+    private boolean isWebRequest(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return !path.startsWith("/api/");
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex) {
+    public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException ex,
+                                                   HttpServletRequest request) {
 
-        String path = ex.getResourcePath();
+        if (isWebRequest(request)) {
+            return ResponseEntity.notFound().build();
+        }
 
-        Map<String, String> errors = Map.of("path", path);
+        Map<String, String> errors = Map.of("path", ex.getResourcePath());
 
         return buildError(
                 ErrorCode.RESOURCE_NOT_FOUND.name(),
@@ -106,8 +140,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleAllExceptions(Exception ex) {
-        log.error("Unhandled exception", ex);
+    public ResponseEntity<?> handleAllExceptions(Exception ex,
+                                                 HttpServletRequest request) {
+
+        if (isWebRequest(request)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        log.info(ex.getMessage(), ex);
 
         return buildError(
                 ErrorCode.INTERNAL_SERVER_ERROR.name(),

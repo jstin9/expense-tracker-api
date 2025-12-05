@@ -39,3 +39,6 @@ build/
 # env file
 .env
 
+# resources
+/src/main/resources
+
