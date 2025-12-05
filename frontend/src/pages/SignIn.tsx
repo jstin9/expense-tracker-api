@@ -37,7 +37,9 @@ const SignIn = () => {
 		onSuccess: (data) => {
 			console.log("Signup successful:", data);
 
-			localStorage.setItem("token", data.token);
+			localStorage.setItem("token", data.accessToken);
+			localStorage.setItem("refreshToken", data.refreshToken);
+			localStorage.setItem("username", data.username);
 
 			setTimeout(() => {
 				navigate("/");

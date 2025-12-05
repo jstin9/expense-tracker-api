@@ -1,8 +1,9 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faArrowLeft,
 	faArrowRight,
+	faArrowRightFromBracket,
 	faBookmark,
 	faCalendar,
 	faCashRegister,
@@ -33,7 +34,7 @@ const NavElement = ({ route, isMobile }: { route: TRoutes; isMobile: boolean }) 
 			className={`text-left px-6 py-3 mb-2 rounded-full font-medium transition-all duration-100 ${
 				location.pathname === route.path ? "bg-gray-500" : "text-gray-300 hover:bg-gray-600"
 			}`}>
-			<div className={`flex ${ isMobile && "justify-center"}`}>
+			<div className={`flex ${isMobile && "justify-center"}`}>
 				<span className="w-8">
 					<FontAwesomeIcon size="lg" icon={route.icon} />
 				</span>
@@ -46,13 +47,22 @@ const NavElement = ({ route, isMobile }: { route: TRoutes; isMobile: boolean }) 
 const Sidebar = () => {
 	const { isMobile } = useIsMobile();
 	const [showFullSidebar, setShowFullSidebar] = useState(!isMobile);
+	const navigate = useNavigate();
 
 	const sidearToggle = () => {
 		setShowFullSidebar((prev) => !prev);
 	};
 
+	const logoutButton = () => {
+		localStorage.removeItem("token");
+		navigate("/signin");
+	};
+
 	return (
-		<div className={`${showFullSidebar ? "w-64" : "w-14"} h-11/12 flex flex-col bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl shadow-lg ml-3 transition-all duration-100`}>
+		<div
+			className={`${
+				showFullSidebar ? "w-64" : "w-14"
+			} h-11/12 flex flex-col bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl shadow-lg ml-3 transition-all duration-100`}>
 			{showFullSidebar && (
 				<div className="text-2xl font-bold p-6 border-b border-gray-700 transition-all duration-100">
 					ExpenseTracker
@@ -72,7 +82,10 @@ const Sidebar = () => {
 				)}
 			</nav>
 
-			<nav className={`h-11/12 flex flex-col justify-end ${showFullSidebar ? "px-1.5" : "px-0.5"}`}>
+			<nav
+				className={`h-11/12 flex flex-col justify-end ${
+					showFullSidebar ? "px-1.5" : "px-0.5"
+				}`}>
 				<div className="border-b border-gray-700 mb-6"></div>
 				{routes.map(
 					(route: TRoutes) =>
@@ -89,13 +102,26 @@ const Sidebar = () => {
 					className={
 						"text-left px-6 py-3 mb-2 rounded-full transition-colors duration-200 font-medium text-gray-300 hover:bg-gray-600"
 					}
+					onClick={logoutButton}>
+					<div className={`flex ${!showFullSidebar && "justify-center"} text-red-900`}>
+						<span className="w-8">
+							<FontAwesomeIcon icon={faArrowRightFromBracket} size="lg"/>
+						</span>
+						Logout
+					</div>
+				</button>
+
+				<button
+					className={
+						"text-left px-6 py-3 mb-2 rounded-full transition-colors duration-200 font-medium text-gray-300 hover:bg-gray-700"
+					}
 					onClick={sidearToggle}>
-					<div className={`flex ${ !showFullSidebar && "justify-center"}`}>
+					<div className={`flex ${!showFullSidebar && "justify-center"}`}>
 						<span className="w-8">
 							{showFullSidebar ? (
-								<FontAwesomeIcon icon={faArrowLeft} />
+								<FontAwesomeIcon icon={faArrowLeft} size="lg"/>
 							) : (
-								<FontAwesomeIcon icon={faArrowRight} />
+								<FontAwesomeIcon icon={faArrowRight} size="lg"/>
 							)}
 						</span>
 						{showFullSidebar && "Hide Sidebar"}

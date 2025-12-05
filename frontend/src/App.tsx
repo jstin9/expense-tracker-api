@@ -5,7 +5,7 @@ import AppLayout from "./shared/layouts/AppLayout";
 import SignLayout from "./shared/layouts/SignLayout";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
-import Home from "./pages/Home";
+import Home from "./pages/Home/Page";
 import Categories from "./pages/Categories";
 import Settings from "./pages/Settings";
 import Transactions from "./pages/transactions/Page";
