@@ -1,12 +1,9 @@
 package com.jstn9.expensetracker.exception;
 
-public class CategoryNotFoundException extends FieldException {
-    public CategoryNotFoundException(String message) {
-        super(message);
-    }
+import org.springframework.http.HttpStatus;
 
-    @Override
-    public String getField() {
-        return "category_id";
+public class CategoryNotFoundException extends ApiException {
+    public CategoryNotFoundException() {
+        super(ErrorCode.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND, "category");
     }
 }

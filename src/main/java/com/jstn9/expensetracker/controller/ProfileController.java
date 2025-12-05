@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/profile")
@@ -26,6 +28,13 @@ public class ProfileController {
     @PutMapping()
     public ResponseEntity<ProfileResponse> updateProfile(@Valid @RequestBody ProfileRequest request){
         return ResponseEntity.ok(profileService.updateProfile(request));
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<Map<String, Boolean>> checkProfile(){
+        boolean isFilled = profileService.isProfileFilled();
+        return ResponseEntity.ok(Map.of("isFilled", isFilled));
+
     }
 
 }

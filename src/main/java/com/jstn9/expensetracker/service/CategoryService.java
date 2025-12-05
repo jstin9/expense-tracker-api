@@ -4,11 +4,13 @@ import com.jstn9.expensetracker.dto.category.CategoryCreateRequest;
 import com.jstn9.expensetracker.dto.category.CategoryResponse;
 import com.jstn9.expensetracker.dto.category.CategoryUpdateRequest;
 import com.jstn9.expensetracker.exception.CategoryAlreadyExistsException;
+import com.jstn9.expensetracker.exception.CategoryIsUsedInTransactionException;
 import com.jstn9.expensetracker.exception.CategoryNotFoundException;
 import com.jstn9.expensetracker.models.Category;
 import com.jstn9.expensetracker.models.User;
 import com.jstn9.expensetracker.repository.CategoryRepository;
-import com.jstn9.expensetracker.util.mapper.CategoryMapper;
+import com.jstn9.expensetracker.repository.TransactionRepository;
+import com.jstn9.expensetracker.util.MapperUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,18 +19,20 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final TransactionRepository transactionRepository;
     private final UserService userService;
 
-    public CategoryService(CategoryRepository categoryRepository, UserService userService) {
+    public CategoryService(CategoryRepository categoryRepository, TransactionRepository transactionRepository, UserService userService) {
         this.categoryRepository = categoryRepository;
+        this.transactionRepository = transactionRepository;
         this.userService = userService;
     }
 
     public List<CategoryResponse> getAllForCurrentUser(){
         User user = userService.getCurrentUser();
 
-        return categoryRepository.findByUser(user).stream()
-                .map(CategoryMapper::toCategoryResponse)
+        return categoryRepository.findByUserOrderByName(user).stream()
+                .map(MapperUtil::toCategoryResponse)
                 .toList();
     }
 
@@ -36,16 +40,16 @@ public class CategoryService {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
 
-        return CategoryMapper.toCategoryResponse(category);
+        return MapperUtil.toCategoryResponse(category);
     }
 
     public CategoryResponse createCategory(CategoryCreateRequest request){
         User user = userService.getCurrentUser();
 
         if(categoryRepository.existsByNameAndUser(request.getName(), user)){
-            throw new CategoryAlreadyExistsException("Category already exists!");
+            throw new CategoryAlreadyExistsException();
         }
 
         Category category = new Category();
@@ -53,26 +57,31 @@ public class CategoryService {
         category.setUser(user);
         Category savedCategory = categoryRepository.save(category);
 
-        return CategoryMapper.toCategoryResponse(savedCategory);
+        return MapperUtil.toCategoryResponse(savedCategory);
     }
 
     public CategoryResponse updateCategory(Long id, CategoryUpdateRequest request) {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         category.setName(request.getName());
         Category savedCategory = categoryRepository.save(category);
 
-        return CategoryMapper.toCategoryResponse(savedCategory);
+        return MapperUtil.toCategoryResponse(savedCategory);
     }
 
     public void deleteCategory(Long id) {
         User user = userService.getCurrentUser();
 
         Category category = categoryRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found!"));
+                .orElseThrow(CategoryNotFoundException::new);
+
+        boolean isUsed = transactionRepository.existsByCategory(category);
+        if(isUsed){
+            throw new CategoryIsUsedInTransactionException();
+        }
 
         categoryRepository.delete(category);
     }

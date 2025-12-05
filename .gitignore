@@ -32,6 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
-# application config
-/src/main/resources/application.properties
+# dev properties
+/src/main/resources/application-dev.properties
+
+
+# env file
+.env
 

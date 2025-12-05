@@ -37,22 +37,14 @@ public class UserService {
     @Transactional
     public User save(RegistrationRequest user) {
 
-        //Check if username or email exists
         if (userRepository.existsUserByUsername(user.getUsername())) {
-            throw new UsernameAlreadyExistsException(user.getUsername());
+            throw new UsernameAlreadyExistsException();
         }
 
         if (userRepository.existsUserByEmail(user.getEmail())) {
-            throw new EmailAlreadyExistsException(user.getEmail());
+            throw new EmailAlreadyExistsException();
         }
-//        if(userRepository.existsUserByUsername((user.getUsername()))) {
-//            throw new UserAlreadyExistsException("User with username " + user.getUsername() + " already exists");
-//        }
-//        if (userRepository.existsUserByEmail((user.getEmail()))){
-//            throw new UserAlreadyExistsException("User with email " + user.getEmail() + " already exists");
-//        }
 
-        //Create new user
         User newUser = new User();
         newUser.setUsername(user.getUsername());
         newUser.setEmail(user.getEmail());
@@ -67,7 +59,7 @@ public class UserService {
         //Create empty profile and save it after user registration
         Profile profile = new Profile();
         profile.setUser(savedUser);
-        profile.setName(savedUser.getUsername());
+        profile.setName("");
         profile.setBalance(BigDecimal.ZERO);
         profile.setMonthSalary(BigDecimal.ZERO);
         profile.setCurrencyType(CurrencyType.EUR);

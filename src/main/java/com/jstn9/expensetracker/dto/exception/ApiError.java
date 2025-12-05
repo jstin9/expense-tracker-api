@@ -13,7 +13,7 @@ import java.util.Map;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiError {
-    private String message;
+    private String code;
     private int status;
     private LocalDateTime timestamp;
     private Map<String, String> errors;

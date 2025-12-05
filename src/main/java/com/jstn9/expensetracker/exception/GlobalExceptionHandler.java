@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -20,6 +21,22 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiError> handleFieldException(ApiException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        if(ex.getField() != null) {
+            errors = Map.of(ex.getField(), ex.getErrorCode().name());
+        }
+
+        return buildError(
+                ex.getErrorCode().name(),
+                ex.getHttpStatus(),
+                errors
+        );
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationExceptions(MethodArgumentNotValidException ex) {
 
@@ -27,38 +44,26 @@ public class GlobalExceptionHandler {
 
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String field = ((FieldError) error).getField();
-            String message = error.getDefaultMessage();
-            errors.put(field, message);
+            String messageCode = error.getDefaultMessage();
+            errors.put(field, messageCode);
         });
 
         return buildError(
-                ex.getMessage(),
+                ErrorCode.VALIDATION_FAILED.name(),
                 HttpStatus.BAD_REQUEST,
-                errors
-        );
-    }
-
-
-    @ExceptionHandler(FieldException.class)
-    public ResponseEntity<ApiError> handleFieldException(FieldException ex) {
-
-        Map<String, String> errors = Map.of(
-                ex.getField(), ex.getMessage()
-        );
-
-        return buildError(
-                "Validation failed",
-                HttpStatus.CONFLICT,
                 errors
         );
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
+
+        Map<String, String> errors = Map.of("credentials", ErrorCode.BAD_CREDENTIALS.name());
+
         return buildError(
-                ex.getMessage(),
+                ErrorCode.BAD_CREDENTIALS.name(),
                 HttpStatus.UNAUTHORIZED,
-                null
+                errors
         );
     }
 
@@ -67,7 +72,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleJsonParsing(HttpMessageNotReadableException ex) {
 
         Map<String, String> errors = new HashMap<>();
-
         Throwable cause = ex.getCause();
 
         if (cause instanceof InvalidFormatException ife) {
@@ -75,14 +79,28 @@ public class GlobalExceptionHandler {
                     ? "unknown"
                     : ife.getPath().get(0).getFieldName();
 
-            errors.put(field, "Invalid value: " + ife.getValue());
+            errors.put(field, ErrorCode.JSON_INVALID.name());
         } else {
-            errors.put("json", "Malformed JSON input");
+            errors.put("json", ErrorCode.MALFORMED_JSON.name());
         }
 
         return buildError(
-                "Invalid request",
+                ErrorCode.JSON_INVALID.name(),
                 HttpStatus.BAD_REQUEST,
+                errors
+        );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex) {
+
+        String path = ex.getResourcePath();
+
+        Map<String, String> errors = Map.of("path", path);
+
+        return buildError(
+                ErrorCode.RESOURCE_NOT_FOUND.name(),
+                HttpStatus.NOT_FOUND,
                 errors
         );
     }
@@ -92,7 +110,7 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception", ex);
 
         return buildError(
-                "Internal server error",
+                ErrorCode.INTERNAL_SERVER_ERROR.name(),
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 null
         );

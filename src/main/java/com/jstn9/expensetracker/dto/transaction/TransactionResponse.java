@@ -1,5 +1,6 @@
 package com.jstn9.expensetracker.dto.transaction;
 
+import com.jstn9.expensetracker.dto.category.CategoryResponse;
 import com.jstn9.expensetracker.models.enums.TransactionType;
 import lombok.Data;
 
@@ -18,4 +19,6 @@ public class TransactionResponse {
     private String description;
 
     private LocalDate date;
+
+    private CategoryResponse category;
 }
