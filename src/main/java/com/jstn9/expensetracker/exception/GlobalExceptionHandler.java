@@ -68,7 +68,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleJsonParsing(HttpMessageNotReadableException ex) {
 
@@ -90,36 +89,6 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 errors
         );
-    }
-
-//    @ExceptionHandler(NoResourceFoundException.class)
-//    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex) {
-//
-//        String path = ex.getResourcePath();
-//
-//        Map<String, String> errors = Map.of("path", path);
-//
-//        return buildError(
-//                ErrorCode.RESOURCE_NOT_FOUND.name(),
-//                HttpStatus.NOT_FOUND,
-//                errors
-//        );
-//    }
-
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ApiError> handleAllExceptions(Exception ex) {
-//        log.error("Unhandled exception", ex);
-//
-//        return buildError(
-//                ErrorCode.INTERNAL_SERVER_ERROR.name(),
-//                HttpStatus.INTERNAL_SERVER_ERROR,
-//                null
-//        );
-//    }
-
-    private boolean isWebRequest(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return !path.startsWith("/api/");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -154,6 +123,11 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 null
         );
+    }
+
+    private boolean isWebRequest(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return !path.startsWith("/api/");
     }
 
     private ResponseEntity<ApiError> buildError(

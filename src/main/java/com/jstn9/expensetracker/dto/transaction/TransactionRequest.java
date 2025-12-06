@@ -26,5 +26,5 @@ public class TransactionRequest {
     private LocalDate date;
 
     @NotNull(message = "Category id is required!")
-    private Long category_id;
+    private Long categoryId;
 }
