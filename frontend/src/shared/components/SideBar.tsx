@@ -107,7 +107,7 @@ const Sidebar = () => {
 						<span className="w-8">
 							<FontAwesomeIcon icon={faArrowRightFromBracket} size="lg"/>
 						</span>
-						Logout
+						{showFullSidebar && "Logout"}
 					</div>
 				</button>
 
