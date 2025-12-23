@@ -6,25 +6,30 @@ import { useQuery } from "@tanstack/react-query";
 import http from "../api/services/http";
 import useProfileFormWidget from "../hooks/useProfileFormWidget";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const AppLayout = () => {
 	const navigate = useNavigate();
 
-
 	const { modal, setModalIsOpen } = useProfileFormWidget();
 
+	
 	const { data } = useQuery({
 		queryKey: ["profileCheck"],
 		queryFn: async () => {
 			const response = await http.get("/profile/check");
 			return response.data;
 		},
+		enabled: !isDev,
 	});
 
 	useEffect(() => {
+		if (isDev) return;
 		if (!localStorage.getItem("token")) navigate("/signin");
 	}, [navigate]);
 
 	useEffect(() => {
+		if (isDev) return;
 		if (data && !data?.isFilled) setModalIsOpen(true);
 	}, [data, setModalIsOpen]);
 

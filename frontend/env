@@ -1,0 +1,5 @@
+#VITE_API_URL="http://26.160.101.150:8081/api"
+VITE_API_URL="http://localhost:8081/api"
+
+#VITE_DEV=true
+VITE_DEV=false

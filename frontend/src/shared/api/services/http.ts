@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const http = axios.create({
-  baseURL: "http://26.160.101.150:8081/api",
-  // baseURL: "http://localhost:8081/api",
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -20,7 +19,7 @@ http.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !import.meta.env.VITE_DEV) {
       localStorage.removeItem("token");
 
       window.location.href = "/signin";
