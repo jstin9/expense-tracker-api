@@ -8,7 +8,8 @@ import SignIn from "./pages/SignIn";
 import Home from "./pages/Home/Page";
 import Categories from "./pages/Categories";
 import Settings from "./pages/Settings";
-import Transactions from "./pages/transactions/Page";
+import Transactions from "./pages/Transactions/Page";
+import Calendar from "./pages/Calendar/Page";
 
 function App() {
 	const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ function App() {
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/categories" element={<Categories />} />
 							<Route path="/transactions" element={<Transactions />} />
+							<Route path="/calendar" element={<Calendar />} />
 						</Route>
 					</Routes>
 				</BrowserRouter>

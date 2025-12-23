@@ -44,14 +44,14 @@ const TinyBalanceChart = () => {
 	});
 
 	const filtredChartData = useMemo(() => {
-		if (!chartQuery?.data) return [];
-		return chartQuery.data.map((data: chartQueryData) => {
+		if (!Array.isArray(chartQuery.data)) return [];
+		return chartQuery.data?.map((data: chartQueryData) => {
 			return {
 				...data,
 				balance: data.income - data.expense,
 			};
 		});
-	}, [chartQuery]);
+	}, [chartQuery.data]);
 
 	return (
 		<div className="w-2/2 h-full flex flex-col justify-center items-center">

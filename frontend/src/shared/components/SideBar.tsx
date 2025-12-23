@@ -9,7 +9,6 @@ import {
 	faCashRegister,
 	faGear,
 	faHouse,
-	// faUser,
 	type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -46,11 +45,17 @@ const NavElement = ({ route, isMobile }: { route: TRoutes; isMobile: boolean }) 
 
 const Sidebar = () => {
 	const { isMobile } = useIsMobile();
-	const [showFullSidebar, setShowFullSidebar] = useState(!isMobile);
+	const [showFullSidebar, setShowFullSidebar] = useState(
+		localStorage.getItem("collapsedSidebar") && !isMobile,
+	);
 	const navigate = useNavigate();
 
 	const sidearToggle = () => {
-		setShowFullSidebar((prev) => !prev);
+		setShowFullSidebar((prev) => {
+			if (!prev) localStorage.setItem("collapsedSidebar", "true");
+			else localStorage.removeItem("collapsedSidebar");
+			return !prev;
+		});
 	};
 
 	const logoutButton = () => {
@@ -105,9 +110,9 @@ const Sidebar = () => {
 					onClick={logoutButton}>
 					<div className={`flex ${!showFullSidebar && "justify-center"} text-red-900`}>
 						<span className="w-8">
-							<FontAwesomeIcon icon={faArrowRightFromBracket} size="lg"/>
+							<FontAwesomeIcon icon={faArrowRightFromBracket} size="lg" />
 						</span>
-						Logout
+						{showFullSidebar && "Logout"}
 					</div>
 				</button>
 
@@ -119,9 +124,9 @@ const Sidebar = () => {
 					<div className={`flex ${!showFullSidebar && "justify-center"}`}>
 						<span className="w-8">
 							{showFullSidebar ? (
-								<FontAwesomeIcon icon={faArrowLeft} size="lg"/>
+								<FontAwesomeIcon icon={faArrowLeft} size="lg" />
 							) : (
-								<FontAwesomeIcon icon={faArrowRight} size="lg"/>
+								<FontAwesomeIcon icon={faArrowRight} size="lg" />
 							)}
 						</span>
 						{showFullSidebar && "Hide Sidebar"}
