@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
-// TODO simplify TransactionService (too many code in one service class)
 @Slf4j
 @Service
 public class TransactionService {

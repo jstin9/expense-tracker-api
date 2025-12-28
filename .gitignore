@@ -39,6 +39,9 @@ build/
 # env file
 .env
 
+#my todo
+todo.md
+
 # resources
 /src/main/resources
 
