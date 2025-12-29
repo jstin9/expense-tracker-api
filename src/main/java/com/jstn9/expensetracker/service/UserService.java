@@ -15,7 +15,6 @@ import com.jstn9.expensetracker.repository.ProfileRepository;
 import com.jstn9.expensetracker.repository.RoleRepository;
 import com.jstn9.expensetracker.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
-@Slf4j
 @Service
 public class UserService {
 
@@ -41,52 +39,22 @@ public class UserService {
         this.userMapper = userMapper;
     }
 
-    //todo: simplify method
     @Transactional
     public UserResponse save(RegistrationRequest user) {
 
-        if (userRepository.existsUserByUsername(user.getUsername())) {
-            log.warn("User with username {} already exists", user.getUsername());
-            throw new UsernameAlreadyExistsException();
-        }
-
-        if (userRepository.existsUserByEmail(user.getEmail())) {
-            log.warn("User with email {} already exists", user.getEmail());
-            throw new EmailAlreadyExistsException();
-        }
-
-        log.info("Start registration user with the username: {}, email: {}",
-                user.getUsername(),  user.getEmail());
+        checkUserDoesNotExist(user);
 
         User newUser = new User();
         newUser.setUsername(user.getUsername());
         newUser.setEmail(user.getEmail());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        Role userRole = roleRepository.findByName(RoleNames.ROLE_USER).orElseThrow(() -> {
-            log.error("Role {} not found", RoleNames.ROLE_USER);
-            return new RoleNotFoundException();
-        });
+        Role userRole = roleRepository.findByName(RoleNames.ROLE_USER).orElseThrow(RoleNotFoundException::new);
         newUser.getRoles().add(userRole);
 
         User savedUser = userRepository.save(newUser);
-        log.info("User saved successfully with id: {}, username: {}",
-                savedUser.getId(), savedUser.getUsername());
 
-        //Create empty profile and save it after user registration
-        Profile profile = new Profile();
-        profile.setUser(savedUser);
-        profile.setName("");
-        profile.setBalance(BigDecimal.ZERO);
-        profile.setMonthSalary(BigDecimal.ZERO);
-        profile.setCurrencyType(CurrencyType.EUR);
-
-        profileRepository.save(profile);
-        log.info("Empty profile created for user with id: {}, username: {}",
-                savedUser.getId(), savedUser.getUsername());
-
-        log.info("Registration completed successfully for user with id: {}, username: {}",
-                savedUser.getId(), savedUser.getUsername());
+        createEmptyProfile(savedUser);
 
         return userMapper.toUserResponse(savedUser);
     }
@@ -94,12 +62,29 @@ public class UserService {
     public User getCurrentUser(){
         String username = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
-        log.debug("Get current user with username: {}", username);
 
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    log.warn("User with username {} not found", username);
-                    return new UsernameNotFoundException(username);
-                });
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+    }
+
+    private void createEmptyProfile(User user){
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setName("");
+        profile.setBalance(BigDecimal.ZERO);
+        profile.setMonthSalary(BigDecimal.ZERO);
+        profile.setCurrencyType(CurrencyType.EUR);
+
+        profileRepository.save(profile);
+    }
+
+    private void checkUserDoesNotExist(RegistrationRequest user){
+        if (userRepository.existsUserByUsername(user.getUsername())) {
+            throw new UsernameAlreadyExistsException();
+        }
+
+        if (userRepository.existsUserByEmail(user.getEmail())) {
+            throw new EmailAlreadyExistsException();
+        }
     }
 }
