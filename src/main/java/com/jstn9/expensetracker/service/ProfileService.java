@@ -4,12 +4,11 @@ import com.jstn9.expensetracker.dto.profile.ProfileRequest;
 import com.jstn9.expensetracker.dto.profile.ProfileResponse;
 import com.jstn9.expensetracker.exception.ProfileNotFilledException;
 import com.jstn9.expensetracker.exception.ProfileNotFoundException;
-import com.jstn9.expensetracker.models.Profile;
-import com.jstn9.expensetracker.models.User;
+import com.jstn9.expensetracker.mapper.ProfileMapper;
+import com.jstn9.expensetracker.model.Profile;
+import com.jstn9.expensetracker.model.User;
 import com.jstn9.expensetracker.repository.ProfileRepository;
-import com.jstn9.expensetracker.util.MapperUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -18,10 +17,12 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
     private final UserService userService;
+    private final ProfileMapper profileMapper;
 
-    public ProfileService(ProfileRepository profileRepository, UserService userService) {
+    public ProfileService(ProfileRepository profileRepository, UserService userService, ProfileMapper profileMapper) {
         this.profileRepository = profileRepository;
         this.userService = userService;
+        this.profileMapper = profileMapper;
     }
 
     public ProfileResponse getProfile() {
@@ -29,7 +30,7 @@ public class ProfileService {
         log.info("Profile requested for userId: {}, username: {}",
                 user.getId(), user.getUsername());
         Profile profile = getCurrentUserProfile(user);
-        return MapperUtil.toProfileResponse(profile);
+        return profileMapper.toProfileResponse(profile);
     }
 
     public ProfileResponse updateProfile(ProfileRequest request) {
@@ -46,7 +47,7 @@ public class ProfileService {
 
         log.info("Profile updated successfully for userId: {}, username: {}",
                 user.getId(), user.getUsername());
-        return MapperUtil.toProfileResponse(savedProfile);
+        return profileMapper.toProfileResponse(savedProfile);
     }
 
     public boolean isProfileFilled(){

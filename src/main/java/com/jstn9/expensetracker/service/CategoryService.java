@@ -6,11 +6,11 @@ import com.jstn9.expensetracker.dto.category.CategoryUpdateRequest;
 import com.jstn9.expensetracker.exception.CategoryAlreadyExistsException;
 import com.jstn9.expensetracker.exception.CategoryIsUsedInTransactionException;
 import com.jstn9.expensetracker.exception.CategoryNotFoundException;
-import com.jstn9.expensetracker.models.Category;
-import com.jstn9.expensetracker.models.User;
+import com.jstn9.expensetracker.mapper.CategoryMapper;
+import com.jstn9.expensetracker.model.Category;
+import com.jstn9.expensetracker.model.User;
 import com.jstn9.expensetracker.repository.CategoryRepository;
 import com.jstn9.expensetracker.repository.TransactionRepository;
-import com.jstn9.expensetracker.util.MapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +23,13 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
     private final UserService userService;
+    private final CategoryMapper categoryMapper;
 
-    public CategoryService(CategoryRepository categoryRepository, TransactionRepository transactionRepository, UserService userService) {
+    public CategoryService(CategoryRepository categoryRepository, TransactionRepository transactionRepository, UserService userService, CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
         this.transactionRepository = transactionRepository;
         this.userService = userService;
+        this.categoryMapper = categoryMapper;
     }
 
     public List<CategoryResponse> getAllForCurrentUser(){
@@ -38,7 +40,7 @@ public class CategoryService {
 
         log.info("Categories fetched successfully for user: {}", user.getUsername());
         return categories.stream()
-                .map(MapperUtil::toCategoryResponse)
+                .map(categoryMapper::toCategoryResponse)
                 .toList();
     }
 
@@ -51,7 +53,7 @@ public class CategoryService {
 
         log.info("Category fetched successfully by id: {} for user: {}",
                 category.getId(), user.getUsername());
-        return MapperUtil.toCategoryResponse(category);
+        return categoryMapper.toCategoryResponse(category);
     }
 
     public CategoryResponse createCategory(CategoryCreateRequest request){
@@ -71,7 +73,7 @@ public class CategoryService {
 
         log.info("Category created successfully with id: {} for user: {}",
                 savedCategory.getId(), user.getUsername());
-        return MapperUtil.toCategoryResponse(savedCategory);
+        return categoryMapper.toCategoryResponse(savedCategory);
     }
 
     public CategoryResponse updateCategory(Long id, CategoryUpdateRequest request) {
@@ -85,7 +87,7 @@ public class CategoryService {
 
         log.info("Category updated successfully with id: {} for user: {}",
                 savedCategory.getId(), user.getUsername());
-        return MapperUtil.toCategoryResponse(savedCategory);
+        return categoryMapper.toCategoryResponse(savedCategory);
     }
 
     public void deleteCategory(Long id) {

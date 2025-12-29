@@ -1,6 +1,6 @@
 package com.jstn9.expensetracker.dto.transaction;
 
-import com.jstn9.expensetracker.models.enums.TransactionType;
+import com.jstn9.expensetracker.model.enums.TransactionType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;

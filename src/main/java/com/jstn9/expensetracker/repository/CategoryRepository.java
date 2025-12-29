@@ -1,7 +1,7 @@
 package com.jstn9.expensetracker.repository;
 
-import com.jstn9.expensetracker.models.Category;
-import com.jstn9.expensetracker.models.User;
+import com.jstn9.expensetracker.model.Category;
+import com.jstn9.expensetracker.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

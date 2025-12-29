@@ -1,8 +1,8 @@
 package com.jstn9.expensetracker.specification;
 
 import com.jstn9.expensetracker.dto.transaction.TransactionFilter;
-import com.jstn9.expensetracker.models.Transaction;
-import com.jstn9.expensetracker.models.User;
+import com.jstn9.expensetracker.model.Transaction;
+import com.jstn9.expensetracker.model.User;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 

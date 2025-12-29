@@ -1,6 +1,6 @@
 package com.jstn9.expensetracker.dto.profile;
 
-import com.jstn9.expensetracker.models.enums.CurrencyType;
+import com.jstn9.expensetracker.model.enums.CurrencyType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;

@@ -1,7 +1,7 @@
 package com.jstn9.expensetracker.config;
 
-import com.jstn9.expensetracker.models.Role;
-import com.jstn9.expensetracker.models.enums.RoleNames;
+import com.jstn9.expensetracker.model.Role;
+import com.jstn9.expensetracker.model.enums.RoleNames;
 import com.jstn9.expensetracker.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

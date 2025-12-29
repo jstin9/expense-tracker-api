@@ -1,6 +1,6 @@
-package com.jstn9.expensetracker.models;
+package com.jstn9.expensetracker.model;
 
-import com.jstn9.expensetracker.models.enums.TransactionType;
+import com.jstn9.expensetracker.model.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.Data;
 

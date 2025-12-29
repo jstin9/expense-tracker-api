@@ -5,9 +5,9 @@ import com.jstn9.expensetracker.dto.statistics.DailyStats;
 import com.jstn9.expensetracker.dto.statistics.IncomeExpense;
 import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
 import com.jstn9.expensetracker.dto.transaction.TransactionResponse;
-import com.jstn9.expensetracker.models.User;
+import com.jstn9.expensetracker.mapper.TransactionMapper;
+import com.jstn9.expensetracker.model.User;
 import com.jstn9.expensetracker.repository.TransactionRepository;
-import com.jstn9.expensetracker.util.MapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,10 +22,12 @@ public class StatisticsService {
 
     private final TransactionRepository transactionRepository;
     private final UserService userService;
+    private final TransactionMapper transactionMapper;
 
-    public StatisticsService(TransactionRepository transactionRepository, UserService userService) {
+    public StatisticsService(TransactionRepository transactionRepository, UserService userService, TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
         this.userService = userService;
+        this.transactionMapper = transactionMapper;
     }
 
     public IncomeExpense getIncomeExpenseStats(LocalDate from, LocalDate to) {
@@ -69,7 +71,7 @@ public class StatisticsService {
         return transactionRepository
                 .findByUserOrderByDateDesc(user, pageable)
                 .stream()
-                .map(MapperUtil::toTransactionResponse)
+                .map(transactionMapper::toTransactionResponse)
                 .toList();
     }
 }

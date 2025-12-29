@@ -7,16 +7,16 @@ import com.jstn9.expensetracker.exception.BalanceNegativeException;
 import com.jstn9.expensetracker.exception.CategoryNotFoundException;
 import com.jstn9.expensetracker.exception.TransactionNotFoundException;
 import com.jstn9.expensetracker.exception.UsernameNotFoundException;
-import com.jstn9.expensetracker.models.Category;
-import com.jstn9.expensetracker.models.Profile;
-import com.jstn9.expensetracker.models.Transaction;
-import com.jstn9.expensetracker.models.User;
-import com.jstn9.expensetracker.models.enums.TransactionType;
+import com.jstn9.expensetracker.mapper.TransactionMapper;
+import com.jstn9.expensetracker.model.Category;
+import com.jstn9.expensetracker.model.Profile;
+import com.jstn9.expensetracker.model.Transaction;
+import com.jstn9.expensetracker.model.User;
+import com.jstn9.expensetracker.model.enums.TransactionType;
 import com.jstn9.expensetracker.repository.CategoryRepository;
 import com.jstn9.expensetracker.repository.ProfileRepository;
 import com.jstn9.expensetracker.repository.TransactionRepository;
 import com.jstn9.expensetracker.specification.TransactionSpecification;
-import com.jstn9.expensetracker.util.MapperUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,15 +33,17 @@ public class TransactionService {
     private final CategoryRepository categoryRepository;
     private final ProfileRepository profileRepository;
     private final UserService userService;
+    private final TransactionMapper transactionMapper;
 
     public TransactionService(TransactionRepository transactionRepository,
                               CategoryRepository categoryRepository,
                               ProfileRepository profileRepository,
-                              UserService userService) {
+                              UserService userService, TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
         this.categoryRepository = categoryRepository;
         this.profileRepository = profileRepository;
         this.userService = userService;
+        this.transactionMapper = transactionMapper;
     }
 
     public Page<TransactionResponse> getFiltered(TransactionFilter filter, Pageable pageable){
@@ -53,7 +55,7 @@ public class TransactionService {
 
         return transactionRepository.findAll(TransactionSpecification
                 .filter(filter, user), pageable)
-                .map(MapperUtil::toTransactionResponse);
+                .map(transactionMapper::toTransactionResponse);
     }
 
     public TransactionResponse getTransactionById(Long id) {
@@ -66,7 +68,7 @@ public class TransactionService {
         });
 
         log.info("Transaction fetched successfully with id: {} for user: {}", id, user.getUsername());
-        return MapperUtil.toTransactionResponse(transaction);
+        return transactionMapper.toTransactionResponse(transaction);
     }
 
     @Transactional
@@ -83,7 +85,7 @@ public class TransactionService {
         log.info("Transaction created successfully with id: {}, profileId: {}",
                 savedTransaction.getId(), profile.getId());
 
-        return MapperUtil.toTransactionResponse(savedTransaction);
+        return transactionMapper.toTransactionResponse(savedTransaction);
     }
 
     @Transactional
@@ -93,12 +95,7 @@ public class TransactionService {
 
         log.info("Starting update transaction for transactionId: {}, profileId: {}", id, profile.getId());
 
-        Transaction oldTransaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> {
-                    log.warn("Transaction not found for transactionId: {}, profileId: {}",
-                            id, profile.getId());
-                    return new TransactionNotFoundException();
-                });
+        Transaction oldTransaction = findOldTransactionByIdAndUser(id, user);
 
 
         boolean amountChanged = oldTransaction.getAmount().compareTo(request.getAmount()) != 0;
@@ -124,7 +121,7 @@ public class TransactionService {
         Transaction savedTransaction = transactionRepository.save(oldTransaction);
         log.info("Transaction updated successfully with id: {}, profileId: {}",
                 savedTransaction.getId(), profile.getId());
-        return MapperUtil.toTransactionResponse(savedTransaction);
+        return transactionMapper.toTransactionResponse(savedTransaction);
     }
 
     @Transactional
@@ -135,12 +132,7 @@ public class TransactionService {
         log.info("Starting delete transaction for transactionId: {}, profileId: {}",
                 id, profile.getId());
 
-        Transaction oldTransaction = transactionRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> {
-                    log.warn("Transaction not found for transactionId: {}, profileId: {}",
-                            id, profile.getId());
-                    return new TransactionNotFoundException();
-                });
+        Transaction oldTransaction = findOldTransactionByIdAndUser(id, user);
 
         rollbackOldTransactionEffect(profile, oldTransaction);
 
@@ -240,6 +232,16 @@ public class TransactionService {
                 .orElseThrow(() -> {
                     log.warn("Could not find current user profile for user: {}", user.getUsername());
                     return new UsernameNotFoundException();
+                });
+    }
+
+    private Transaction findOldTransactionByIdAndUser(Long id, User user) {
+        Profile profile = getCurrentUserProfile();
+        return transactionRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> {
+                    log.warn("Transaction not found for transactionId: {}, profileId: {}",
+                            id, profile.getId());
+                    return new TransactionNotFoundException();
                 });
     }
 }

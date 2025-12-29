@@ -1,7 +1,7 @@
 package com.jstn9.expensetracker.repository;
 
-import com.jstn9.expensetracker.models.Role;
-import com.jstn9.expensetracker.models.enums.RoleNames;
+import com.jstn9.expensetracker.model.Role;
+import com.jstn9.expensetracker.model.enums.RoleNames;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

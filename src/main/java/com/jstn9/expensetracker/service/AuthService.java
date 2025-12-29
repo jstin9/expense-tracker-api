@@ -2,7 +2,7 @@ package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.auth.LoginRequest;
 import com.jstn9.expensetracker.dto.auth.LoginResponse;
-import com.jstn9.expensetracker.models.User;
+import com.jstn9.expensetracker.model.User;
 import com.jstn9.expensetracker.repository.UserRepository;
 import com.jstn9.expensetracker.security.CustomUserDetailsService;
 import com.jstn9.expensetracker.security.JwtService;

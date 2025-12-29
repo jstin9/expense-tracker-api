@@ -3,9 +3,9 @@
     import com.jstn9.expensetracker.dto.statistics.CategoryStats;
     import com.jstn9.expensetracker.dto.statistics.DailyStats;
     import com.jstn9.expensetracker.dto.statistics.MonthlyStats;
-    import com.jstn9.expensetracker.models.Category;
-    import com.jstn9.expensetracker.models.Transaction;
-    import com.jstn9.expensetracker.models.User;
+    import com.jstn9.expensetracker.model.Category;
+    import com.jstn9.expensetracker.model.Transaction;
+    import com.jstn9.expensetracker.model.User;
     import org.springframework.data.domain.Pageable;
     import org.springframework.data.jpa.repository.JpaRepository;
     import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

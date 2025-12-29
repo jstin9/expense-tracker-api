@@ -1,6 +1,6 @@
-package com.jstn9.expensetracker.models;
+package com.jstn9.expensetracker.model;
 
-import com.jstn9.expensetracker.models.enums.RoleNames;
+import com.jstn9.expensetracker.model.enums.RoleNames;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

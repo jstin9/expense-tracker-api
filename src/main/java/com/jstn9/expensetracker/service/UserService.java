@@ -1,14 +1,16 @@
 package com.jstn9.expensetracker.service;
 
 import com.jstn9.expensetracker.dto.auth.RegistrationRequest;
+import com.jstn9.expensetracker.dto.auth.UserResponse;
 import com.jstn9.expensetracker.exception.EmailAlreadyExistsException;
 import com.jstn9.expensetracker.exception.RoleNotFoundException;
 import com.jstn9.expensetracker.exception.UsernameAlreadyExistsException;
-import com.jstn9.expensetracker.models.enums.CurrencyType;
-import com.jstn9.expensetracker.models.Profile;
-import com.jstn9.expensetracker.models.Role;
-import com.jstn9.expensetracker.models.User;
-import com.jstn9.expensetracker.models.enums.RoleNames;
+import com.jstn9.expensetracker.mapper.UserMapper;
+import com.jstn9.expensetracker.model.enums.CurrencyType;
+import com.jstn9.expensetracker.model.Profile;
+import com.jstn9.expensetracker.model.Role;
+import com.jstn9.expensetracker.model.User;
+import com.jstn9.expensetracker.model.enums.RoleNames;
 import com.jstn9.expensetracker.repository.ProfileRepository;
 import com.jstn9.expensetracker.repository.RoleRepository;
 import com.jstn9.expensetracker.repository.UserRepository;
@@ -29,16 +31,19 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProfileRepository profileRepository;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, ProfileRepository profileRepository) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, ProfileRepository profileRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.profileRepository = profileRepository;
+        this.userMapper = userMapper;
     }
 
+    //todo: simplify method
     @Transactional
-    public User save(RegistrationRequest user) {
+    public UserResponse save(RegistrationRequest user) {
 
         if (userRepository.existsUserByUsername(user.getUsername())) {
             log.warn("User with username {} already exists", user.getUsername());
@@ -82,7 +87,8 @@ public class UserService {
 
         log.info("Registration completed successfully for user with id: {}, username: {}",
                 savedUser.getId(), savedUser.getUsername());
-        return savedUser;
+
+        return userMapper.toUserResponse(savedUser);
     }
 
     public User getCurrentUser(){

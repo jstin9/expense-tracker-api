@@ -1,4 +1,4 @@
-package com.jstn9.expensetracker.models;
+package com.jstn9.expensetracker.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
